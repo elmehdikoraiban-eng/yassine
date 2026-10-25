@@ -10,7 +10,7 @@ import { Form } from "@/components/form";
 export default async function SettingsPage() {
   const user = await requireUser();
   if (!can(user, "manageUsers")) notFound();
-  const s = await prisma.settings.findUnique({ where: { id: 1 } });
+  const s = await prisma.settings.findFirst({ });
   const f = (k: keyof NonNullable<typeof s>) => (s ? String(s[k] ?? "") : "");
   return (
     <>

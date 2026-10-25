@@ -13,7 +13,7 @@ export default async function PrintInvoice({ params }: { params: Promise<{ id: s
   if (!can(user, "seeFinance")) notFound();
   const [inv, s] = await Promise.all([
     prisma.invoice.findUnique({ where: { id }, include: { payments: true, project: { include: { client: true } } } }),
-    prisma.settings.findUnique({ where: { id: 1 } }),
+    prisma.settings.findFirst({ }),
   ]);
   if (!inv) notFound();
   const t = invoiceTotals(inv);
@@ -65,3 +65,5 @@ export default async function PrintInvoice({ params }: { params: Promise<{ id: s
     </div>
   );
 }
+
+

@@ -5,7 +5,20 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 
-const prisma = new PrismaClient();
+let currentCabinetId = "";
+const prisma = new PrismaClient().$extends({
+  query: {
+    $allModels: {
+      async $allOperations({ model, operation, args, query }) {
+        if (!currentCabinetId || model === "Cabinet") return query(args);
+        const scoped = args as Record<string, unknown>;
+        if (operation === "create" && scoped.data && typeof scoped.data === "object") scoped.data = { ...(scoped.data as Record<string, unknown>), cabinetId: currentCabinetId };
+        if (operation === "createMany" && Array.isArray(scoped.data)) scoped.data = scoped.data.map((item) => ({ ...(item as Record<string, unknown>), cabinetId: currentCabinetId }));
+        return query(scoped);
+      },
+    },
+  },
+});
 const storage = path.resolve(process.env.STORAGE_DIR || "./storage");
 const days = (n: number) => new Date(Date.now() + n * 86400000);
 
@@ -23,16 +36,18 @@ async function main() {
     return;
   }
   const hash = await bcrypt.hash("cabinet2026", 10);
+  const cabinet = await prisma.cabinet.create({ data: { name: "Cabinet d'architecture Benali", slug: "cabinet-demo", city: "Casablanca", contactEmail: "contact@cabinet.ma" } });
+  currentCabinetId = cabinet.id;
   const [gerant, assistante, tech, collab] = await Promise.all([
-    prisma.user.create({ data: { name: "Yassine Benali", email: "gerant@cabinet.ma", role: "GERANT", passwordHash: hash } }),
-    prisma.user.create({ data: { name: "Salma Idrissi", email: "assistante@cabinet.ma", role: "ASSISTANTE", passwordHash: hash } }),
-    prisma.user.create({ data: { name: "Karim Ouazzani", email: "technicien@cabinet.ma", role: "TECHNICIEN", passwordHash: hash } }),
-    prisma.user.create({ data: { name: "Nadia Tazi", email: "collaborateur@cabinet.ma", role: "COLLABORATEUR", passwordHash: hash } }),
+    prisma.user.create({ data: { name: "Yassine Benali", email: "gerant@cabinet.ma", role: "GERANT", cabinetId: currentCabinetId, passwordHash: hash } }),
+    prisma.user.create({ data: { name: "Salma Idrissi", email: "assistante@cabinet.ma", role: "ASSISTANTE", cabinetId: currentCabinetId, passwordHash: hash } }),
+    prisma.user.create({ data: { name: "Karim Ouazzani", email: "technicien@cabinet.ma", role: "TECHNICIEN", cabinetId: currentCabinetId, passwordHash: hash } }),
+    prisma.user.create({ data: { name: "Nadia Tazi", email: "collaborateur@cabinet.ma", role: "COLLABORATEUR", cabinetId: currentCabinetId, passwordHash: hash } }),
   ]);
 
   await prisma.settings.create({
     data: {
-      id: 1, name: "Cabinet d'architecture Benali", address: "12, rue Ibn Toufail", city: "Casablanca",
+      cabinetId: currentCabinetId, name: "Cabinet d'architecture Benali", address: "12, rue Ibn Toufail", city: "Casablanca",
       phone: "+212 5 22 00 00 00", email: "contact@cabinet.ma", ice: "001234567000089", ifiscal: "12345678",
       rc: "123456", patente: "34567890", rib: "011 780 0000123456789012 34", vatRate: 20, paymentDays: 30,
     },
@@ -81,8 +96,8 @@ async function main() {
         landTitle: s.tf, location: "Voir plan de situation", startDate: days(-s.st0),
         surfaceTerrain: 400 + pCount * 150, surfaceConstruite: 300 + pCount * 210,
         programme: "Programme défini avec le client lors de la première réunion.",
-        members: { create: [gerant.id, assistante.id, ...s.members].map((userId) => ({ userId })) },
-        stakeholders: { create: s.st.map((i) => ({ stakeholderId: stakeholders[i]!.id, mission: stakeholders[i]!.kind === "BET" ? "Études techniques" : undefined })) },
+        members: { create: [gerant.id, assistante.id, ...s.members].map((userId) => ({ userId, cabinet: { connect: { id: currentCabinetId } } })) },
+        stakeholders: { create: s.st.map((i) => ({ stakeholderId: stakeholders[i]!.id, cabinet: { connect: { id: currentCabinetId } }, mission: stakeholders[i]!.kind === "BET" ? "Études techniques" : undefined })) },
       },
     });
     await prisma.auditLog.create({ data: { userId: assistante.id, entity: "Projet", entityId: project.id, projectId: project.id, action: "création", summary: `Dossier ${ref} « ${s.name} » ouvert`, createdAt: days(-s.st0) } });
@@ -128,7 +143,7 @@ async function main() {
     // Honoraires, factures, règlements
     if (s.ht > 0) {
       const contract = await prisma.contract.create({
-        data: { projectId: project.id, amountHT: s.ht, vatRate: 20, signedAt: days(-s.st0 + 10), milestones: { create: schedule.map((m, i) => ({ order: i + 1, ...m })) } },
+        data: { projectId: project.id, amountHT: s.ht, vatRate: 20, signedAt: days(-s.st0 + 10), milestones: { create: schedule.map((m, i) => ({ order: i + 1, ...m, cabinet: { connect: { id: currentCabinetId } } })) } },
         include: { milestones: { orderBy: { order: "asc" } } },
       });
       for (const m of contract.milestones) {
@@ -153,7 +168,7 @@ async function main() {
       }
     }
   }
-  await prisma.counter.createMany({ data: [{ key: "P-2026", value: pCount }, { key: "FA-2026", value: fCount }] });
+  await prisma.counter.createMany({ data: [{ cabinetId: currentCabinetId, key: "P-2026", value: pCount }, { cabinetId: currentCabinetId, key: "FA-2026", value: fCount }] });
   console.log("Données de démonstration créées. Connexion : gerant@cabinet.ma / cabinet2026");
 }
 

@@ -71,6 +71,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </nav>
           )}
 
+          {user.isPlatformAdmin && (
+            <nav className="nav-section">
+              <div className="nav-title">Plateforme</div>
+              <NavLink href="/admin"><Icon name="shield" /> Tous les cabinets</NavLink>
+            </nav>
+          )}
+
           <div className="sidebar-foot">
             <form action={logout}>
               <button className="user-chip btn-ghost" style={{ width: "100%", border: "none", background: "none", font: "inherit", color: "inherit", cursor: "pointer", textAlign: "left" }} title="Se déconnecter">

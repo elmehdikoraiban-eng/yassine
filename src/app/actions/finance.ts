@@ -95,7 +95,7 @@ export async function createInvoice(projectId: string, fd: FormData) {
     if (amountHT == null && milestone && contract) amountHT = round2((num(contract.amountHT) * num(milestone.percent)) / 100);
     if (amountHT == null || amountHT <= 0) throw new Error("Montant HT invalide.");
     const object = str(fd, "object") ?? (milestone ? `Honoraires — ${milestone.label} (${num(milestone.percent)} %)` : "Honoraires d'architecte");
-    const settings = await prisma.settings.findUnique({ where: { id: 1 } });
+    const settings = await prisma.settings.findFirst({ });
     const inv = await prisma.invoice.create({
       data: {
         projectId, milestoneId: milestone?.id ?? null, object, amountHT,
@@ -142,7 +142,7 @@ export async function issueInvoice(id: string, fd: FormData) {
     assertCan(user, "manageFinance");
     const inv = await prisma.invoice.findUniqueOrThrow({ where: { id } });
     if (inv.status !== "BROUILLON") return;
-    const settings = await prisma.settings.findUnique({ where: { id: 1 } });
+    const settings = await prisma.settings.findFirst({ });
     const issue = str(fd, "issueDate") ? new Date(str(fd, "issueDate")!) : new Date();
     const due = str(fd, "dueDate") ? new Date(str(fd, "dueDate")!) : new Date(issue.getTime() + (settings?.paymentDays ?? 30) * 86400000);
     // Numéro et émission dans la même transaction : un double clic ou un échec ne laisse ni trou ni doublon.

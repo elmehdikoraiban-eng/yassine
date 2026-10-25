@@ -22,7 +22,7 @@ export async function createUser(fd: FormData) {
     const password = str(fd, "password");
     const role = str(fd, "role") as Role;
     if (!name || !email || !password || password.length < 8) throw new Error("Nom, e-mail et mot de passe (8 caractères minimum) obligatoires.");
-    const u = await prisma.user.create({ data: { name, email, role, passwordHash: await bcrypt.hash(password, 10) } });
+    const u = await prisma.user.create({ data: { name, email, role, cabinetId: user.cabinetId, passwordHash: await bcrypt.hash(password, 10) } });
     await audit(user, { entity: "Utilisateur", entityId: u.id, action: "création", summary: `Compte ${name} créé (${ROLE_LABELS[role]})` });
     revalidatePath("/equipe");
   });
@@ -57,7 +57,7 @@ export async function saveSettings(fd: FormData) {
     for (const f of fields) data[f] = str(fd, f) ?? "";
     data.vatRate = decimalOrNull(fd, "vatRate") ?? 20;
     data.paymentDays = Number(str(fd, "paymentDays") ?? 30) || 30;
-    await prisma.settings.upsert({ where: { id: 1 }, create: { id: 1, ...data }, update: data });
+    await prisma.settings.upsert({ where: { cabinetId: user.cabinetId }, create: { cabinetId: user.cabinetId, ...data }, update: data });
     await audit(user, { entity: "Paramètres", entityId: "1", action: "modification", summary: "Informations du cabinet mises à jour" });
     revalidatePath("/parametres");
   });
@@ -87,7 +87,7 @@ export async function saveBrand(fd: FormData) {
       ...(favicon ? { faviconPath: favicon.path, faviconMime: favicon.mime } : fd.get("removeFavicon") === "on" ? { faviconPath: null, faviconMime: null } : {}),
       brandVersion: { increment: 1 },
     };
-    await prisma.settings.upsert({ where: { id: 1 }, create: { id: 1, ...data, brandVersion: 1 }, update: data });
+    await prisma.settings.upsert({ where: { cabinetId: user.cabinetId }, create: { cabinetId: user.cabinetId, ...data, brandVersion: 1 }, update: data });
     await audit(user, { entity: "Paramètres", entityId: "1", action: "modification", summary: "Nom, logo ou favicon modifiés" });
     revalidateTag("brand");
     revalidatePath("/", "layout");
