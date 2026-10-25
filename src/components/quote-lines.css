@@ -1,0 +1,5 @@
+/* Lignes du devis */
+.quote-lines td { padding: 6px 6px; }
+.quote-lines input { padding: 7px 9px; }
+.quote-totals { grid-template-columns: auto 160px; align-items: center; min-width: 300px; }
+.quote-totals dt { text-align: right; }

@@ -1,0 +1,74 @@
+"use server";
+
+import { run } from "@/lib/action";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import type { ClientType, NoteKind } from "@prisma/client";
+import { prisma } from "@/lib/db";
+import { requireUser } from "@/lib/auth";
+import { assertCan } from "@/lib/permissions";
+import { audit } from "@/lib/audit";
+import { notifyRoles } from "@/lib/notify";
+import { str } from "@/lib/format";
+
+const clientData = (fd: FormData) => ({
+  type: (str(fd, "type") ?? "PHYSIQUE") as ClientType,
+  name: str(fd, "name") ?? "",
+  contact: str(fd, "contact"),
+  cin: str(fd, "cin"),
+  ice: str(fd, "ice"),
+  rc: str(fd, "rc"),
+  ifiscal: str(fd, "ifiscal"),
+  address: str(fd, "address"),
+  city: str(fd, "city"),
+  phone: str(fd, "phone"),
+  email: str(fd, "email"),
+  notes: str(fd, "notes"),
+});
+
+export async function createClient(fd: FormData) {
+  return run(async () => {
+    const user = await requireUser();
+    assertCan(user, "manageClients");
+    const data = clientData(fd);
+    if (!data.name) throw new Error("Le nom du client est obligatoire.");
+    const client = await prisma.client.create({ data });
+    await Promise.all([
+      audit(user, { entity: "Client", entityId: client.id, action: "création", summary: `Client « ${client.name} » créé` }),
+      notifyRoles(user, ["GERANT", "ASSISTANTE"], { title: `Nouveau client : ${client.name}`, body: `Fiche créée par ${user.name}.`, href: `/clients/${client.id}` }),
+    ]);
+    redirect(`/clients/${client.id}`);
+  });
+}
+
+export async function updateClient(id: string, fd: FormData) {
+  return run(async () => {
+    const user = await requireUser();
+    assertCan(user, "manageClients");
+    const data = clientData(fd);
+    if (!data.name) throw new Error("Le nom du client est obligatoire.");
+    await prisma.client.update({ where: { id }, data });
+    await audit(user, { entity: "Client", entityId: id, action: "modification", summary: `Fiche client « ${data.name} » modifiée` });
+    redirect(`/clients/${id}`);
+  });
+}
+
+export async function addClientNote(clientId: string, fd: FormData) {
+  return run(async () => {
+    const user = await requireUser();
+    assertCan(user, "manageClients");
+    const content = str(fd, "content");
+    if (!content) return;
+    const date = str(fd, "date");
+    await prisma.clientNote.create({
+      data: {
+        clientId,
+        authorId: user.id,
+        kind: (str(fd, "kind") ?? "OBSERVATION") as NoteKind,
+        content,
+        date: date ? new Date(date) : new Date(),
+      },
+    });
+    revalidatePath(`/clients/${clientId}`);
+  });
+}
