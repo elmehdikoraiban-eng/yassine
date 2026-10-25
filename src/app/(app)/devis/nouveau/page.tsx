@@ -13,7 +13,7 @@ export default async function NewQuotePage({ searchParams }: { searchParams: Pro
   const { client } = await searchParams;
   const [clients, settings] = await Promise.all([
     prisma.client.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    prisma.settings.findUnique({ where: { id: 1 }, select: { vatRate: true } }),
+    prisma.settings.findFirst({ select: { vatRate: true } }),
   ]);
   return (
     <>

@@ -13,7 +13,7 @@ export default async function PrintQuote({ params }: { params: Promise<{ id: str
   if (!can(user, "seeFinance")) notFound();
   const [q, s] = await Promise.all([
     prisma.quote.findUnique({ where: { id }, include: { lines: { orderBy: { order: "asc" } }, client: true } }),
-    prisma.settings.findUnique({ where: { id: 1 } }),
+    prisma.settings.findFirst({ }),
   ]);
   if (!q) notFound();
   const t = quoteTotals(q.lines, q.vatRate);
@@ -79,3 +79,5 @@ export default async function PrintQuote({ params }: { params: Promise<{ id: str
     </div>
   );
 }
+
+

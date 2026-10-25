@@ -25,7 +25,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
         project: { include: { client: true } },
       },
     }),
-    prisma.settings.findUnique({ where: { id: 1 } }),
+    prisma.settings.findFirst({ }),
   ]);
   if (!inv) notFound();
   const t = invoiceTotals(inv);
@@ -161,3 +161,5 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
     </>
   );
 }
+
+

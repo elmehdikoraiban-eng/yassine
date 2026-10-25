@@ -23,7 +23,7 @@ export default async function ProjectFinances({ params }: { params: Promise<{ id
         invoices: { orderBy: { createdAt: "desc" }, include: { payments: true } },
       },
     }),
-    prisma.settings.findUnique({ where: { id: 1 } }),
+    prisma.settings.findFirst({ }),
   ]);
   const c = p.contract;
   const fees = c ? feeSummary(num(c.amountHT), num(c.vatRate), p.invoices) : null;
@@ -175,3 +175,5 @@ export default async function ProjectFinances({ params }: { params: Promise<{ id
     </div>
   );
 }
+
+
