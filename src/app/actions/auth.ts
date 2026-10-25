@@ -12,6 +12,7 @@ export async function login(_: { error?: string } | undefined, fd: FormData) {
   if (!user || !user.active || !(await bcrypt.compare(password, user.passwordHash))) {
     return { error: "E-mail ou mot de passe incorrect." };
   }
+  await prisma.$executeRaw`UPDATE "User" SET "lastLoginAt" = NOW() WHERE "id" = ${user.id}`;
   await createSession({ id: user.id, email: user.email, cabinetId: user.cabinetId });
   redirect("/");
 }
@@ -43,8 +44,9 @@ export async function registerCabinet(_: { error?: string } | undefined, fd: For
         city: city || null,
         phone: phone || null,
         contactEmail: email,
+        subscriptionStartedAt: new Date(),
         trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-        users: { create: { name, email, role: "GERANT", passwordHash } },
+        users: { create: { name, email, role: "GERANT", passwordHash, lastLoginAt: new Date() } },
         settings: { create: { name: cabinetName, city, phone, email } },
       },
       include: { users: { where: { email }, select: { id: true, email: true } } },
@@ -63,3 +65,4 @@ export async function logout() {
   await destroySession();
   redirect("/connexion");
 }
+

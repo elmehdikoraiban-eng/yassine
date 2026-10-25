@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { revalidatePath, revalidateTag } from "next/cache";
 import type { Role } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, requirePlatformAdmin } from "@/lib/auth";
 import { assertCan } from "@/lib/permissions";
 import { audit } from "@/lib/audit";
 import { decimalOrNull, str } from "@/lib/format";
@@ -93,3 +93,51 @@ export async function saveBrand(fd: FormData) {
     revalidatePath("/", "layout");
   });
 }
+
+
+const ADMIN_PLANS = new Set(["TRIAL", "STARTER", "PRO", "BUSINESS"]);
+const SUBSCRIPTION_STATES = new Set(["TRIAL", "ACTIVE", "PAST_DUE", "CANCELED"]);
+
+function adminDate(fd: FormData, key: string, label: string) {
+  const value = str(fd, key);
+  if (!value) return null;
+  const parsed = new Date(value + "T00:00:00.000Z");
+  if (Number.isNaN(parsed.getTime())) throw new Error("La date " + label + " est invalide.");
+  return parsed;
+}
+
+export async function updatePlatformCabinet(fd: FormData) {
+  return run(async () => {
+    const admin = await requirePlatformAdmin();
+    const cabinetId = str(fd, "cabinetId");
+    const status = str(fd, "status");
+    const plan = str(fd, "plan");
+    const subscriptionStatus = str(fd, "subscriptionStatus");
+    if (!cabinetId || !status || !plan || !subscriptionStatus) throw new Error("Informations du cabinet incomplètes.");
+    if (!new Set(["ACTIVE", "SUSPENDED"]).has(status)) throw new Error("Statut de cabinet invalide.");
+    if (!ADMIN_PLANS.has(plan)) throw new Error("Formule invalide.");
+    if (!SUBSCRIPTION_STATES.has(subscriptionStatus)) throw new Error("Statut d'abonnement invalide.");
+    const existing = await prisma.cabinet.findUnique({ where: { id: cabinetId }, select: { id: true, name: true, status: true, plan: true, subscriptionStatus: true, trialEndsAt: true, subscriptionStartedAt: true, subscriptionRenewsAt: true, lastPaymentAt: true } });
+    if (!existing) throw new Error("Cabinet introuvable.");
+
+    const next = {
+      status,
+      plan,
+      subscriptionStatus,
+      trialEndsAt: adminDate(fd, "trialEndsAt", "de fin d'essai"),
+      subscriptionStartedAt: adminDate(fd, "subscriptionStartedAt", "de début d'abonnement"),
+      subscriptionRenewsAt: adminDate(fd, "subscriptionRenewsAt", "de renouvellement"),
+      lastPaymentAt: adminDate(fd, "lastPaymentAt", "de paiement"),
+    };
+    await prisma.cabinet.update({ where: { id: cabinetId }, data: next });
+    const changes = [
+      existing.status !== status ? "statut " + existing.status + " → " + status : null,
+      existing.plan !== plan ? "formule " + existing.plan + " → " + plan : null,
+      existing.subscriptionStatus !== subscriptionStatus ? "abonnement " + existing.subscriptionStatus + " → " + subscriptionStatus : null,
+      "dates d'essai, d'abonnement et de paiement enregistrées",
+    ].filter(Boolean).join(" ; ");
+    await prisma.platformAdminAction.create({ data: { adminId: admin.id, adminEmail: admin.email, cabinetId, action: "gestion_abonnement", summary: existing.name + " : " + changes } });
+    revalidatePath("/admin");
+  });
+}
+
