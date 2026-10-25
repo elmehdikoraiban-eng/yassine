@@ -20,7 +20,7 @@ npm run dev
 
 Créez ensuite un cabinet depuis `/inscription`. L'inscription crée l'espace, le compte gérant et 14 jours d'essai.
 
-Configurez `SUPABASE_DATABASE_URL` avec le pooler de transaction Supabase (6543) pour le runtime et `SUPABASE_DIRECT_URL` pour les migrations et opérations Prisma. Le build Vercel ne modifie plus le schéma automatiquement ; appliquez les migrations SQL explicitement. Les fichiers métier restent stockés dans Vercel Blob.
+Configurez `SUPABASE_DATABASE_URL` avec le pooler de transaction Supabase (6543) pour le runtime et `SUPABASE_DIRECT_URL` pour Prisma. Appliquez les fichiers SQL de `prisma/migrations/` selon leur numérotation avant le premier démarrage. Le build Vercel ne modifie jamais le schéma automatiquement. Les fichiers métier restent stockés dans Vercel Blob.
 
 ## Sécurité et configuration
 
@@ -28,3 +28,4 @@ Configurez `SUPABASE_DATABASE_URL` avec le pooler de transaction Supabase (6543)
 - Configurez `PLATFORM_ADMIN_EMAILS` côté serveur (liste d'adresses séparées par des virgules). Ne pas exposer cette variable au navigateur.
 - Ne connectez pas directement la clé Supabase publique à ces tables : l'application utilise Prisma côté serveur.
 - Les migrations de production se font explicitement, jamais pendant le build.
+

@@ -28,7 +28,7 @@ export default async function StakeholdersPage() {
                     {list.map((s) => (
                       <tr key={s.id}>
                         <td><Badge plain>{STAKEHOLDER_KIND_LABELS[s.kind]}</Badge></td>
-                        <td>{s.name}</td>
+                        <td>{can(user, "manageStakeholders") ? <Link className="link" href={"/intervenants/" + s.id}>{s.name}</Link> : s.name}</td>
                         <td className="muted" style={{ fontSize: 13 }}>{[s.contact, s.phone, s.email].filter(Boolean).join(" · ") || "—"}</td>
                         <td style={{ fontSize: 13 }}>
                           {s.projects.map((l) => (
@@ -62,3 +62,4 @@ export default async function StakeholdersPage() {
     </>
   );
 }
+

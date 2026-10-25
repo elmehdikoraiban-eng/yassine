@@ -12,7 +12,7 @@ export default async function PrintQuote({ params }: { params: Promise<{ id: str
   const user = await requireUser();
   if (!can(user, "seeFinance")) notFound();
   const [q, s] = await Promise.all([
-    prisma.quote.findUnique({ where: { id }, include: { lines: { orderBy: { order: "asc" } }, client: true } }),
+    prisma.quote.findUnique({ where: { id }, include: { lines: { orderBy: { order: "asc" } }, client: true, project: { select: { landTitle: true } } } }),
     prisma.settings.findFirst({ }),
   ]);
   if (!q) notFound();
@@ -44,7 +44,12 @@ export default async function PrintQuote({ params }: { params: Promise<{ id: str
           <p>{c.address}</p>
           <p>{c.city}</p>
           {c.ice && <p>ICE : {c.ice}</p>}
+          {c.cin && <p>CIN : {c.cin}</p>}
+          {c.cinExpiryDate && <p>Expiration CIN : {date(c.cinExpiryDate)}</p>}
+          {c.fatherName && <p>Nom du père : {c.fatherName}</p>}
+          {c.motherName && <p>Nom de la mère : {c.motherName}</p>}
         </div>
+        {q.project?.landTitle && <p style={{ marginBottom: 10 }}>Titre foncier du projet : <strong>{q.project.landTitle}</strong></p>}
         <p style={{ marginBottom: 10 }}>Objet : <strong>{q.object}</strong></p>
         <table>
           <thead><tr><th>Désignation</th><th className="num">Qté</th><th>Unité</th><th className="num">P.U. HT</th><th className="num">Montant HT</th></tr></thead>
@@ -79,5 +84,6 @@ export default async function PrintQuote({ params }: { params: Promise<{ id: str
     </div>
   );
 }
+
 
 

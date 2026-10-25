@@ -76,7 +76,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                           <td className="mono">{p.reference ?? "—"}</td>
                           <td>{p.userName}</td>
                           <td className="num">{money(p.amount)}</td>
-                          <td className="right">{can(user, "cancelInvoice") && <Form action={deletePayment.bind(null, p.id)}><button className="btn btn-ghost btn-sm">Supprimer</button></Form>}</td>
+                          <td className="right"><div className="row" style={{ justifyContent: "flex-end" }}><Link className="btn btn-ghost btn-sm" href={"/factures/" + id + "/recu?paiement=" + p.id}>Reçu</Link>{can(user, "cancelInvoice") && <Form action={deletePayment.bind(null, p.id)}><button className="btn btn-ghost btn-sm">Supprimer</button></Form>}</div></td>
                         </tr>
                       ))}
                     </tbody>
@@ -161,5 +161,6 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
     </>
   );
 }
+
 
 

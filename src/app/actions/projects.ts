@@ -12,6 +12,7 @@ import { audit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
 import { decimalOrNull, str } from "@/lib/format";
 import { PROJECT_STATUS_LABELS, STAKEHOLDER_KIND_LABELS, stepLabel } from "@/lib/constants";
+import { registerUploaded, saveFile } from "@/lib/storage";
 
 const projectData = (fd: FormData) => ({
   name: str(fd, "name") ?? "",
@@ -21,6 +22,7 @@ const projectData = (fd: FormData) => ({
   nature: str(fd, "nature"),
   programme: str(fd, "programme"),
   landTitle: str(fd, "landTitle"),
+  technicianObjective: str(fd, "technicianObjective"),
   surfaceTerrain: decimalOrNull(fd, "surfaceTerrain"),
   surfaceConstruite: decimalOrNull(fd, "surfaceConstruite"),
 });
@@ -194,8 +196,27 @@ export async function unlinkStakeholder(projectId: string, stakeholderId: string
   });
 }
 
+export async function uploadStakeholderFile(stakeholderId: string, fd: FormData) {
+  return run(async () => {
+    const user = await requireUser();
+    assertCan(user, "manageStakeholders");
+    const stakeholder = await prisma.stakeholder.findUniqueOrThrow({ where: { id: stakeholderId }, select: { id: true, name: true } });
+    const file = fd.get("file");
+    const blobUrl = str(fd, "blobUrl");
+    if (!blobUrl && (!(file instanceof File) || file.size === 0)) throw new Error("Choisissez un fichier.");
+    if (file instanceof File && file.size > 25 * 1024 * 1024) throw new Error("Le fichier ne peut pas dépasser 25 Mo.");
+    const scope = "intervenants/" + stakeholderId;
+    const stored = blobUrl ? await registerUploaded(scope, blobUrl, str(fd, "blobName") ?? "fichier") : await saveFile(scope, file as File);
+    if (stored.size > 25 * 1024 * 1024) throw new Error("Le fichier ne peut pas dépasser 25 Mo.");
+    const row = await prisma.stakeholderFile.create({ data: { cabinetId: user.cabinetId, stakeholderId, authorId: user.id, ...stored } });
+    await audit(user, { entity: "Fichier intervenant", entityId: row.id, action: "dépôt", summary: "Fichier ajouté au Drive de " + stakeholder.name });
+    revalidatePath("/intervenants/" + stakeholderId);
+  });
+}
+
 export async function createStakeholderForm(fd: FormData) {
   return run(async () => {
     await createStakeholder(fd);
   });
 }
+

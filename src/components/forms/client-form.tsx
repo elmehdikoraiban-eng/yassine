@@ -1,5 +1,6 @@
 import type { Client } from "@prisma/client";
 import { Field } from "../ui";
+import { inputDate } from "@/lib/format";
 import { Form } from "@/components/form";
 
 export function ClientForm({ client, action, submit }: { client?: Client | null; action: (fd: FormData) => Promise<unknown>; submit: string }) {
@@ -18,8 +19,17 @@ export function ClientForm({ client, action, submit }: { client?: Client | null;
         <Field label="Interlocuteur (personne morale)">
           <input name="contact" defaultValue={client?.contact ?? ""} />
         </Field>
-        <Field label="CIN">
+        <Field label="N° CIN">
           <input name="cin" defaultValue={client?.cin ?? ""} />
+        </Field>
+        <Field label="Date d’expiration CIN">
+          <input name="cinExpiryDate" type="date" defaultValue={inputDate(client?.cinExpiryDate)} />
+        </Field>
+        <Field label="Nom du père">
+          <input name="fatherName" defaultValue={client?.fatherName ?? ""} />
+        </Field>
+        <Field label="Nom de la mère">
+          <input name="motherName" defaultValue={client?.motherName ?? ""} />
         </Field>
         <Field label="ICE" hint="Identifiant commun de l'entreprise, repris sur les factures.">
           <input name="ice" defaultValue={client?.ice ?? ""} />
@@ -52,3 +62,4 @@ export function ClientForm({ client, action, submit }: { client?: Client | null;
     </Form>
   );
 }
+

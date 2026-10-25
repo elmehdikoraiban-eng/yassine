@@ -4,11 +4,11 @@
 export const STEPS: { n: number; label: string; phase: string }[] = [
   { n: 1, label: "Réception et écoute du client", phase: "Avant-projet" },
   { n: 2, label: "Collecte et vérification des documents", phase: "Avant-projet" },
-  { n: 3, label: "Analyse de faisabilité", phase: "Avant-projet" },
+  { n: 3, label: "Consultation et cadrage de la mission", phase: "Avant-projet" },
   { n: 4, label: "Proposition de mission et contrat", phase: "Avant-projet" },
-  { n: 5, label: "Ouverture du dossier projet", phase: "Avant-projet" },
-  { n: 6, label: "Visite, relevé et état des lieux", phase: "Conception" },
-  { n: 7, label: "Conception architecturale", phase: "Conception" },
+  { n: 5, label: "Analyse de faisabilité", phase: "Avant-projet" },
+  { n: 6, label: "Visite, relevé et état des lieux", phase: "Avant-projet" },
+  { n: 7, label: "Ouverture du dossier et conception", phase: "Conception" },
   { n: 8, label: "Préparation du dossier d'autorisation", phase: "Autorisation" },
   { n: 9, label: "Dépôt et suivi de l'instruction", phase: "Autorisation" },
   { n: 10, label: "Observations, corrections et redépôt", phase: "Autorisation" },
@@ -46,6 +46,7 @@ export const FOLDERS: { code: string; label: string; finance?: boolean }[] = [
   { code: "13_FACTURATION", label: "Facturation", finance: true },
   { code: "14_COMPTABILITE", label: "Comptabilité", finance: true },
   { code: "15_ARCHIVES", label: "Archives" },
+  { code: "16_NOTICE_SECURITE_INCENDIE", label: "Notice de sécurité incendie" },
 ];
 
 /** §18 — Échéancier type, entièrement modifiable par contrat. */
@@ -125,3 +126,4 @@ export const PLAN_TONE: Record<string, string> = {
   DIFFUSE: "ok",
   REVISE: "warn",
 };
+

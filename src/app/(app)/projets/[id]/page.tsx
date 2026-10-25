@@ -63,6 +63,7 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
             ))}
           </dl>
           {p.programme && <p className="notice" style={{ marginTop: 14, whiteSpace: "pre-wrap" }}>{p.programme}</p>}
+          {p.technicianObjective && <div className="notice" style={{ marginTop: 12 }}><strong>Objectif des techniciens</strong><p style={{ marginTop: 6, whiteSpace: "pre-wrap" }}>{p.technicianObjective}</p></div>}
         </div>
 
         <div className="card">
@@ -173,3 +174,4 @@ export default async function ProjectOverview({ params }: { params: Promise<{ id
     </div>
   );
 }
+
