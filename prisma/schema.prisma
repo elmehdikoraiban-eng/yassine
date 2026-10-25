@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("SUPABASE_DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("SUPABASE_DATABASE_URL")
   directUrl = env("SUPABASE_DIRECT_URL")
 }
 
@@ -85,41 +85,42 @@ enum PaymentMethod {
 
 /// Organisation cliente de la plateforme SaaS.
 model Cabinet {
-  id                 String   @id @default(cuid())
+  id                 String    @id @default(cuid())
   name               String
-  slug               String   @unique
+  slug               String    @unique
   city               String?
   phone              String?
   contactEmail       String?
-  status             String   @default("ACTIVE")
-  plan               String   @default("TRIAL")
-  subscriptionStatus String   @default("TRIAL")
+  status             String    @default("ACTIVE")
+  plan               String    @default("TRIAL")
+  subscriptionStatus String    @default("TRIAL")
   trialEndsAt        DateTime?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  users User[]
-  settings Settings?
-  notifications Notification[]
-  clients Client[]
-  clientNotes ClientNote[]
-  projects Project[]
-  projectMembers ProjectMember[]
-  stepChanges StepChange[]
-  stakeholders Stakeholder[]
+  users               User[]
+  settings            Settings?
+  notifications       Notification[]
+  clients             Client[]
+  clientNotes         ClientNote[]
+  projects            Project[]
+  projectMembers      ProjectMember[]
+  stepChanges         StepChange[]
+  stakeholders        Stakeholder[]
+  stakeholderFiles    StakeholderFile[]
   projectStakeholders ProjectStakeholder[]
-  documents Document[]
-  documentVersions DocumentVersion[]
-  distributions Distribution[]
-  contracts Contract[]
-  milestones Milestone[]
-  invoices Invoice[]
-  payments Payment[]
-  reminders Reminder[]
-  quotes Quote[]
-  quoteLines QuoteLine[]
-  counters Counter[]
-  auditLogs AuditLog[]
+  documents           Document[]
+  documentVersions    DocumentVersion[]
+  distributions       Distribution[]
+  contracts           Contract[]
+  milestones          Milestone[]
+  invoices            Invoice[]
+  payments            Payment[]
+  reminders           Reminder[]
+  quotes              Quote[]
+  quoteLines          QuoteLine[]
+  counters            Counter[]
+  auditLogs           AuditLog[]
 
   @@index([status, createdAt])
 }
@@ -135,11 +136,12 @@ model User {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
 
-  memberships   ProjectMember[]
-  versions      DocumentVersion[]
-  notes         ClientNote[]
-  audits        AuditLog[]
-  notifications Notification[]
+  memberships      ProjectMember[]
+  versions         DocumentVersion[]
+  stakeholderFiles StakeholderFile[]
+  notes            ClientNote[]
+  audits           AuditLog[]
+  notifications    Notification[]
 }
 
 /// Informations du cabinet utilisées sur les factures.
@@ -173,7 +175,7 @@ model Settings {
 /// Notification interne (cloche dans l'application) : affectation à un projet, nouveau dossier…
 model Notification {
   cabinetId String?
-  cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  cabinet   Cabinet?  @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   id        String    @id @default(cuid())
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -185,28 +187,30 @@ model Notification {
   createdAt DateTime  @default(now())
 
   @@index([cabinetId])
-
   @@index([userId, readAt])
   @@index([userId, createdAt])
 }
 
 model Client {
-  cabinetId String?
-  cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
-  id        String     @id @default(cuid())
-  type      ClientType @default(PHYSIQUE)
-  name      String
-  contact   String?
-  cin       String?
-  ice       String?
-  rc        String?
-  ifiscal   String?
-  address   String?
-  city      String?
-  phone     String?
-  email     String?
-  notes     String?
-  createdAt DateTime   @default(now())
+  cabinetId     String?
+  cabinet       Cabinet?   @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  id            String     @id @default(cuid())
+  type          ClientType @default(PHYSIQUE)
+  name          String
+  contact       String?
+  cin           String?
+  cinExpiryDate DateTime?
+  fatherName    String?
+  motherName    String?
+  ice           String?
+  rc            String?
+  ifiscal       String?
+  address       String?
+  city          String?
+  phone         String?
+  email         String?
+  notes         String?
+  createdAt     DateTime   @default(now())
 
   projects     Project[]
   interactions ClientNote[]
@@ -216,39 +220,39 @@ model Client {
 model ClientNote {
   cabinetId String?
   cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
-  id       String   @id @default(cuid())
-  clientId String
-  client   Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  authorId String
-  author   User     @relation(fields: [authorId], references: [id])
-  kind     NoteKind
-  content  String
-  date     DateTime @default(now())
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  kind      NoteKind
+  content   String
+  date      DateTime @default(now())
 
   @@index([cabinetId])
-
   @@index([clientId, date])
 }
 
 model Project {
-  cabinetId String?
-  cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
-  id                String        @id @default(cuid())
-  reference         String
-  name              String
-  clientId          String
-  client            Client        @relation(fields: [clientId], references: [id])
-  location          String?
-  city              String?
-  nature            String?
-  programme         String?
-  landTitle         String?
-  surfaceTerrain    Decimal?      @db.Decimal(12, 2)
-  surfaceConstruite Decimal?      @db.Decimal(12, 2)
-  step              Int           @default(1)
-  status            ProjectStatus @default(EN_COURS)
-  startDate         DateTime      @default(now())
-  createdAt         DateTime      @default(now())
+  cabinetId           String?
+  cabinet             Cabinet?      @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  id                  String        @id @default(cuid())
+  reference           String
+  name                String
+  clientId            String
+  client              Client        @relation(fields: [clientId], references: [id])
+  location            String?
+  city                String?
+  nature              String?
+  programme           String?
+  landTitle           String?
+  technicianObjective String?
+  surfaceTerrain      Decimal?      @db.Decimal(12, 2)
+  surfaceConstruite   Decimal?      @db.Decimal(12, 2)
+  step                Int           @default(1)
+  status              ProjectStatus @default(EN_COURS)
+  startDate           DateTime      @default(now())
+  createdAt           DateTime      @default(now())
 
   members      ProjectMember[]
   stakeholders ProjectStakeholder[]
@@ -268,13 +272,12 @@ model ProjectMember {
   cabinetId String?
   cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   userId    String
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([cabinetId])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([projectId, userId])
+  @@index([cabinetId])
   @@index([userId])
 }
 
@@ -291,13 +294,12 @@ model StepChange {
   createdAt DateTime @default(now())
 
   @@index([cabinetId])
-
   @@index([projectId, createdAt])
 }
 
 model Stakeholder {
   cabinetId String?
-  cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  cabinet   Cabinet?        @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   id        String          @id @default(cuid())
   kind      StakeholderKind
   name      String
@@ -308,26 +310,46 @@ model Stakeholder {
 
   projects      ProjectStakeholder[]
   distributions Distribution[]
+  files         StakeholderFile[]
+}
+
+/// Fichiers privés reçus ou partagés avec un intervenant.
+model StakeholderFile {
+  cabinetId     String
+  cabinet       Cabinet     @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid())
+  stakeholderId String
+  stakeholder   Stakeholder @relation(fields: [stakeholderId], references: [id], onDelete: Cascade)
+  authorId      String
+  author        User        @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  fileName      String
+  storagePath   String
+  size          Int
+  mime          String
+  createdAt     DateTime    @default(now())
+
+  @@index([cabinetId])
+  @@index([stakeholderId, createdAt])
+  @@index([authorId])
 }
 
 model ProjectStakeholder {
-  cabinetId String?
-  cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  cabinetId     String?
+  cabinet       Cabinet?    @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   projectId     String
   project       Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
   stakeholderId String
   stakeholder   Stakeholder @relation(fields: [stakeholderId], references: [id], onDelete: Cascade)
   mission       String?
 
-  @@index([cabinetId])
-
   @@id([projectId, stakeholderId])
+  @@index([cabinetId])
   @@index([stakeholderId])
 }
 
 model Document {
-  cabinetId String?
-  cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  cabinetId  String?
+  cabinet    Cabinet?    @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   id         String      @id @default(cuid())
   projectId  String
   project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -344,14 +366,13 @@ model Document {
   distributions Distribution[]
 
   @@index([cabinetId])
-
   @@index([projectId, updatedAt])
   @@index([planStatus])
 }
 
 model DocumentVersion {
-  cabinetId String?
-  cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  cabinetId   String?
+  cabinet     Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   id          String   @id @default(cuid())
   documentId  String
   document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
@@ -368,13 +389,12 @@ model DocumentVersion {
   distributions Distribution[]
 
   @@index([cabinetId])
-
   @@index([documentId, createdAt])
 }
 
 model Distribution {
-  cabinetId String?
-  cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  cabinetId     String?
+  cabinet       Cabinet?        @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   id            String          @id @default(cuid())
   documentId    String
   document      Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
@@ -388,14 +408,13 @@ model Distribution {
   date          DateTime        @default(now())
 
   @@index([cabinetId])
-
   @@index([documentId])
   @@index([stakeholderId])
 }
 
 model Contract {
   cabinetId String?
-  cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  cabinet   Cabinet?  @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   id        String    @id @default(cuid())
   projectId String    @unique
   project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -409,8 +428,8 @@ model Contract {
 }
 
 model Milestone {
-  cabinetId String?
-  cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  cabinetId  String?
+  cabinet    Cabinet?  @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   id         String    @id @default(cuid())
   contractId String
   contract   Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
@@ -423,13 +442,12 @@ model Milestone {
   invoices Invoice[]
 
   @@index([cabinetId])
-
   @@index([contractId])
 }
 
 model Invoice {
-  cabinetId String?
-  cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  cabinetId    String?
+  cabinet      Cabinet?      @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   id           String        @id @default(cuid())
   number       String?
   projectId    String
@@ -457,7 +475,7 @@ model Invoice {
 
 model Payment {
   cabinetId String?
-  cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  cabinet   Cabinet?      @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   id        String        @id @default(cuid())
   invoiceId String
   invoice   Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
@@ -469,7 +487,6 @@ model Payment {
   createdAt DateTime      @default(now())
 
   @@index([cabinetId])
-
   @@index([invoiceId])
 }
 
@@ -485,14 +502,13 @@ model Reminder {
   userName  String
 
   @@index([cabinetId])
-
   @@index([invoiceId])
 }
 
 /// Devis d'honoraires adressé à un client, transformable en projet avec contrat une fois accepté.
 model Quote {
-  cabinetId String?
-  cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
+  cabinetId  String?
+  cabinet    Cabinet?    @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
   id         String      @id @default(cuid())
   number     String
   clientId   String
@@ -518,17 +534,16 @@ model Quote {
 model QuoteLine {
   cabinetId String?
   cabinet   Cabinet? @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   quoteId   String
-  quote     Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quote     Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
   order     Int
   label     String
-  quantity  Decimal @default(1) @db.Decimal(12, 2)
+  quantity  Decimal  @default(1) @db.Decimal(12, 2)
   unit      String?
-  unitPrice Decimal @db.Decimal(14, 2)
+  unitPrice Decimal  @db.Decimal(14, 2)
 
   @@index([cabinetId])
-
   @@index([quoteId])
 }
 
@@ -536,8 +551,8 @@ model QuoteLine {
 model Counter {
   cabinetId String
   cabinet   Cabinet @relation(fields: [cabinetId], references: [id], onDelete: Cascade)
-  key        String
-  value      Int    @default(0)
+  key       String
+  value     Int     @default(0)
 
   @@id([cabinetId, key])
 }
@@ -556,7 +571,7 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   @@index([cabinetId])
-
   @@index([projectId])
   @@index([createdAt])
 }
+

@@ -44,8 +44,13 @@ export default async function PrintInvoice({ params }: { params: Promise<{ id: s
           <p>{c.address}</p>
           <p>{c.city}</p>
           {c.ice && <p>ICE : {c.ice}</p>}
+          {c.cin && <p>CIN : {c.cin}</p>}
+          {c.cinExpiryDate && <p>Expiration CIN : {date(c.cinExpiryDate)}</p>}
+          {c.fatherName && <p>Nom du père : {c.fatherName}</p>}
+          {c.motherName && <p>Nom de la mère : {c.motherName}</p>}
         </div>
         <p style={{ marginBottom: 10 }}>Projet : {inv.project.reference} — {inv.project.name}{inv.project.city ? `, ${inv.project.city}` : ""}</p>
+        {inv.project.landTitle && <p style={{ marginTop: 8 }}>Titre foncier : {inv.project.landTitle}</p>}
         <table>
           <thead><tr><th>Désignation</th><th className="num">Montant HT</th></tr></thead>
           <tbody><tr><td>{inv.object}</td><td className="num">{money(t.ht)}</td></tr></tbody>
@@ -65,5 +70,6 @@ export default async function PrintInvoice({ params }: { params: Promise<{ id: s
     </div>
   );
 }
+
 
 

@@ -45,6 +45,9 @@ export function ProjectForm({
         <Field label="Programme" full>
           <textarea name="programme" defaultValue={project?.programme ?? ""} placeholder="Besoins du client, niveaux, locaux…" />
         </Field>
+        <Field label="Objectif des techniciens" full hint="Objectif et livrable attendu pour l’équipe technique.">
+          <textarea name="technicianObjective" defaultValue={project?.technicianObjective ?? ""} placeholder="Ex. Réaliser le relevé, mettre à jour les plans d’exécution…" />
+        </Field>
         {users && (
           <div className="field full">
             <span>Équipe affectée</span>
@@ -68,3 +71,4 @@ export function ProjectForm({
     </Form>
   );
 }
+

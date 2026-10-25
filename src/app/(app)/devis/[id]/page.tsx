@@ -19,7 +19,7 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
     include: {
       lines: { orderBy: { order: "asc" } },
       client: { include: { projects: { where: { contract: null }, orderBy: { createdAt: "desc" }, select: { id: true, reference: true, name: true } } } },
-      project: { select: { id: true, reference: true, name: true } },
+      project: { select: { id: true, reference: true, name: true, landTitle: true } },
     },
   });
   if (!q) notFound();
@@ -87,6 +87,8 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
               </div>
             )}
 
+            {q.project?.landTitle && <div className="notice">Titre foncier du projet : {q.project.landTitle}</div>}
+
             {manage && !q.project && (
               <div className="card">
                 <div className="card-head"><h2>Suivi</h2></div>
@@ -138,3 +140,4 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
     </>
   );
 }
+

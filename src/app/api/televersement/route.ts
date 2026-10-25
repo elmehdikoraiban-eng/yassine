@@ -13,7 +13,16 @@ export async function POST(req: Request) {
       request: req,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
         const user = await getUser();
-        if (!user || !can(user, "uploadDocuments")) throw new Error("Non autorisé");
+        if (!user) throw new Error("Non autorisé");
+        const payload = clientPayload ?? "";
+        if (payload.startsWith("stakeholder:")) {
+          if (!can(user, "manageStakeholders")) throw new Error("Non autorisé");
+          const stakeholderId = payload.slice("stakeholder:".length);
+          const ok = await prisma.stakeholder.count({ where: { id: stakeholderId } });
+          if (!ok || !pathname.startsWith("intervenants/" + stakeholderId + "/")) throw new Error("Intervenant inaccessible");
+          return { addRandomSuffix: true, maximumSizeInBytes: 25 * 1024 * 1024 };
+        }
+        if (!can(user, "uploadDocuments")) throw new Error("Non autorisé");
         const projectId = clientPayload ?? "";
         const ok = await prisma.project.count({ where: { id: projectId, ...projectScope(user) } });
         if (!ok || !pathname.startsWith(`${projectId}/`)) throw new Error("Projet inaccessible");
@@ -25,3 +34,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });
   }
 }
+

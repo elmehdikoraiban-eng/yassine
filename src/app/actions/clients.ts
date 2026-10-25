@@ -16,6 +16,9 @@ const clientData = (fd: FormData) => ({
   name: str(fd, "name") ?? "",
   contact: str(fd, "contact"),
   cin: str(fd, "cin"),
+  cinExpiryDate: str(fd, "cinExpiryDate") ? new Date(String(str(fd, "cinExpiryDate")) + "T00:00:00") : null,
+  fatherName: str(fd, "fatherName"),
+  motherName: str(fd, "motherName"),
   ice: str(fd, "ice"),
   rc: str(fd, "rc"),
   ifiscal: str(fd, "ifiscal"),
@@ -72,3 +75,4 @@ export async function addClientNote(clientId: string, fd: FormData) {
     revalidatePath(`/clients/${clientId}`);
   });
 }
+

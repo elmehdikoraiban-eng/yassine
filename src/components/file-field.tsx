@@ -8,7 +8,7 @@ import { upload } from "@vercel/blob/client";
  * dès qu'il est choisi, ce qui lève la limite de 4,5 Mo des fonctions ; le formulaire n'envoie
  * ensuite que l'adresse du fichier.
  */
-export function FileField({ projectId, direct, required }: { projectId: string; direct: boolean; required?: boolean }) {
+export function FileField({ projectId, direct, required, scope = "project" }: { projectId: string; direct: boolean; required?: boolean; scope?: "project" | "stakeholder" }) {
   const [state, setState] = useState<{ url?: string; name?: string; progress?: number; error?: string }>({});
   if (!direct) return <input type="file" name="file" required={required} />;
 
@@ -18,10 +18,13 @@ export function FileField({ projectId, direct, required }: { projectId: string; 
     const safe = file.name.normalize("NFKD").replace(/[^\w.\-]+/g, "_").slice(-120);
     setState({ progress: 0 });
     try {
-      const blob = await upload(`${projectId}/${safe}`, file, {
+      const prefix = scope === "stakeholder" ? "intervenants/" + projectId : projectId;
+      const path = prefix + "/" + safe;
+      const clientPayload = scope === "stakeholder" ? "stakeholder:" + projectId : projectId;
+      const blob = await upload(path, file, {
         access: "private",
         handleUploadUrl: "/api/televersement",
-        clientPayload: projectId,
+        clientPayload,
         multipart: file.size > 8 * 1024 * 1024,
         onUploadProgress: (p) => setState({ progress: Math.round(p.percentage) }),
       });
@@ -45,3 +48,4 @@ export function FileField({ projectId, direct, required }: { projectId: string; 
     </div>
   );
 }
+

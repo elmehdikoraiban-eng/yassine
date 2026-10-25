@@ -43,7 +43,10 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
     ["Téléphone", client.phone],
     ["E-mail", client.email],
     ["Adresse", [client.address, client.city].filter(Boolean).join(", ") || null],
-    ["CIN", client.cin],
+    ["N° CIN", client.cin],
+    ["Expiration CIN", client.cinExpiryDate ? date(client.cinExpiryDate) : null],
+    ["Nom du père", client.fatherName],
+    ["Nom de la mère", client.motherName],
     ["ICE", client.ice],
     ["RC", client.rc],
     ["IF", client.ifiscal],
@@ -200,3 +203,4 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
     </>
   );
 }
+
