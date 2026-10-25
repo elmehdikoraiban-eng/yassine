@@ -92,9 +92,12 @@ model Cabinet {
   phone              String?
   contactEmail       String?
   status             String    @default("ACTIVE")
-  plan               String    @default("TRIAL")
-  subscriptionStatus String    @default("TRIAL")
+  plan               String    @default("FREE")
+  subscriptionStatus String    @default("FREE")
   trialEndsAt        DateTime?
+  subscriptionStartedAt DateTime?
+  subscriptionRenewsAt DateTime?
+  lastPaymentAt      DateTime?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
@@ -135,6 +138,7 @@ model User {
   role         Role
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
+  lastLoginAt  DateTime?
 
   memberships      ProjectMember[]
   versions         DocumentVersion[]
@@ -573,5 +577,20 @@ model AuditLog {
   @@index([cabinetId])
   @@index([projectId])
   @@index([createdAt])
+}
+
+
+/// Historique distinct des actions réalisées depuis l'administration plateforme.
+model PlatformAdminAction {
+  id         String   @id @default(cuid())
+  adminId    String
+  adminEmail String
+  cabinetId  String?
+  action     String
+  summary    String
+  createdAt  DateTime @default(now())
+
+  @@index([cabinetId, createdAt])
+  @@index([adminId, createdAt])
 }
 

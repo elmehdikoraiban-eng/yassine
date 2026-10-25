@@ -12,7 +12,7 @@ export default async function SignupPage() {
       <div className="auth-box">
         <div className="brand-mark" style={{ width: 44, height: 44, margin: "0 auto", fontSize: 18 }}>M</div>
         <h1>Créer votre espace</h1>
-        <p className="muted">14 jours d’essai pour organiser votre cabinet d’architecture.</p>
+        <p className="muted">Accès gratuit pour organiser votre cabinet d’architecture.</p>
         <SetupForm />
         <p className="muted" style={{ textAlign: "center", marginTop: 20 }}>
           Vous avez déjà un compte ? <Link href="/connexion">Se connecter</Link>
@@ -21,3 +21,4 @@ export default async function SignupPage() {
     </div>
   );
 }
+

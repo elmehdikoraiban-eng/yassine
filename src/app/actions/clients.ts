@@ -11,6 +11,21 @@ import { audit } from "@/lib/audit";
 import { notifyRoles } from "@/lib/notify";
 import { str } from "@/lib/format";
 
+function validateClientData(data: ReturnType<typeof clientData>) {
+  if (!data.name || !data.phone || !data.city || !data.address) {
+    throw new Error("Le nom, le téléphone, la ville et l’adresse du client sont obligatoires.");
+  }
+  if (data.type === "PHYSIQUE" && (!data.cin || !data.cinExpiryDate || !data.fatherName || !data.motherName)) {
+    throw new Error("Pour une personne physique, la CIN, sa date d’expiration et les noms des deux parents sont obligatoires.");
+  }
+  if (data.type === "MORALE" && (!data.contact || !data.ice || !data.rc || !data.ifiscal)) {
+    throw new Error("Pour une personne morale, l’interlocuteur, l’ICE, le RC et l’IF sont obligatoires.");
+  }
+  if (data.cinExpiryDate && Number.isNaN(data.cinExpiryDate.getTime())) {
+    throw new Error("La date d’expiration de la CIN est invalide.");
+  }
+}
+
 const clientData = (fd: FormData) => ({
   type: (str(fd, "type") ?? "PHYSIQUE") as ClientType,
   name: str(fd, "name") ?? "",
@@ -34,7 +49,7 @@ export async function createClient(fd: FormData) {
     const user = await requireUser();
     assertCan(user, "manageClients");
     const data = clientData(fd);
-    if (!data.name) throw new Error("Le nom du client est obligatoire.");
+    validateClientData(data);
     const client = await prisma.client.create({ data });
     await Promise.all([
       audit(user, { entity: "Client", entityId: client.id, action: "création", summary: `Client « ${client.name} » créé` }),
@@ -49,7 +64,7 @@ export async function updateClient(id: string, fd: FormData) {
     const user = await requireUser();
     assertCan(user, "manageClients");
     const data = clientData(fd);
-    if (!data.name) throw new Error("Le nom du client est obligatoire.");
+    validateClientData(data);
     await prisma.client.update({ where: { id }, data });
     await audit(user, { entity: "Client", entityId: id, action: "modification", summary: `Fiche client « ${data.name} » modifiée` });
     redirect(`/clients/${id}`);

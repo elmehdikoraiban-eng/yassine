@@ -1,14 +1,24 @@
+"use client";
+
+import { useState } from "react";
 import type { Client } from "@prisma/client";
 import { Field } from "../ui";
 import { inputDate } from "@/lib/format";
 import { Form } from "@/components/form";
 
 export function ClientForm({ client, action, submit }: { client?: Client | null; action: (fd: FormData) => Promise<unknown>; submit: string }) {
+  const [type, setType] = useState<Client["type"]>(client?.type ?? "PHYSIQUE");
+  const physical = type === "PHYSIQUE";
+  const company = type === "MORALE";
+
   return (
     <Form action={action} className="card form">
+      <div className="notice" style={{ flexBasis: "100%" }}>
+        Les informations d’identification du client sont obligatoires : CIN et identité familiale pour une personne physique ; ICE, RC et IF pour une personne morale.
+      </div>
       <div className="form-grid">
-        <Field label="Type">
-          <select name="type" defaultValue={client?.type ?? "PHYSIQUE"}>
+        <Field label="Type *">
+          <select name="type" required value={type} onChange={(event) => setType(event.target.value as Client["type"])}>
             <option value="PHYSIQUE">Personne physique</option>
             <option value="MORALE">Personne morale</option>
           </select>
@@ -16,41 +26,41 @@ export function ClientForm({ client, action, submit }: { client?: Client | null;
         <Field label="Nom ou raison sociale *">
           <input name="name" required defaultValue={client?.name ?? ""} />
         </Field>
-        <Field label="Interlocuteur (personne morale)">
-          <input name="contact" defaultValue={client?.contact ?? ""} />
+        <Field label={company ? "Interlocuteur *" : "Interlocuteur"}>
+          <input name="contact" required={company} defaultValue={client?.contact ?? ""} />
         </Field>
-        <Field label="N° CIN">
-          <input name="cin" defaultValue={client?.cin ?? ""} />
+        <Field label={physical ? "N° CIN *" : "N° CIN"}>
+          <input name="cin" required={physical} defaultValue={client?.cin ?? ""} />
         </Field>
-        <Field label="Date d’expiration CIN">
-          <input name="cinExpiryDate" type="date" defaultValue={inputDate(client?.cinExpiryDate)} />
+        <Field label={physical ? "Date d’expiration CIN *" : "Date d’expiration CIN"}>
+          <input name="cinExpiryDate" type="date" required={physical} defaultValue={inputDate(client?.cinExpiryDate)} />
         </Field>
-        <Field label="Nom du père">
-          <input name="fatherName" defaultValue={client?.fatherName ?? ""} />
+        <Field label={physical ? "Nom du père *" : "Nom du père"}>
+          <input name="fatherName" required={physical} defaultValue={client?.fatherName ?? ""} />
         </Field>
-        <Field label="Nom de la mère">
-          <input name="motherName" defaultValue={client?.motherName ?? ""} />
+        <Field label={physical ? "Nom de la mère *" : "Nom de la mère"}>
+          <input name="motherName" required={physical} defaultValue={client?.motherName ?? ""} />
         </Field>
-        <Field label="ICE" hint="Identifiant commun de l'entreprise, repris sur les factures.">
-          <input name="ice" defaultValue={client?.ice ?? ""} />
+        <Field label={company ? "ICE *" : "ICE"}>
+          <input name="ice" required={company} defaultValue={client?.ice ?? ""} />
         </Field>
-        <Field label="RC">
-          <input name="rc" defaultValue={client?.rc ?? ""} />
+        <Field label={company ? "RC *" : "RC"}>
+          <input name="rc" required={company} defaultValue={client?.rc ?? ""} />
         </Field>
-        <Field label="IF (identifiant fiscal)">
-          <input name="ifiscal" defaultValue={client?.ifiscal ?? ""} />
+        <Field label={company ? "IF (identifiant fiscal) *" : "IF (identifiant fiscal)"}>
+          <input name="ifiscal" required={company} defaultValue={client?.ifiscal ?? ""} />
         </Field>
-        <Field label="Téléphone">
-          <input name="phone" defaultValue={client?.phone ?? ""} />
+        <Field label="Téléphone *">
+          <input name="phone" type="tel" required defaultValue={client?.phone ?? ""} />
         </Field>
         <Field label="E-mail">
           <input name="email" type="email" defaultValue={client?.email ?? ""} />
         </Field>
-        <Field label="Ville">
-          <input name="city" defaultValue={client?.city ?? ""} />
+        <Field label="Ville *">
+          <input name="city" required defaultValue={client?.city ?? ""} />
         </Field>
-        <Field label="Adresse" full>
-          <input name="address" defaultValue={client?.address ?? ""} />
+        <Field label="Adresse *" full>
+          <input name="address" required defaultValue={client?.address ?? ""} />
         </Field>
         <Field label="Observations" full>
           <textarea name="notes" defaultValue={client?.notes ?? ""} />

@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { revalidatePath, revalidateTag } from "next/cache";
 import type { Role } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, requirePlatformAdmin } from "@/lib/auth";
 import { assertCan } from "@/lib/permissions";
 import { audit } from "@/lib/audit";
 import { decimalOrNull, str } from "@/lib/format";
@@ -93,3 +93,27 @@ export async function saveBrand(fd: FormData) {
     revalidatePath("/", "layout");
   });
 }
+
+
+
+export async function updatePlatformCabinet(fd: FormData) {
+  return run(async () => {
+    const admin = await requirePlatformAdmin();
+    const cabinetId = str(fd, "cabinetId");
+    const status = str(fd, "status");
+    if (!cabinetId || !status) throw new Error("Informations du cabinet incomplètes.");
+    if (!new Set(["ACTIVE", "SUSPENDED"]).has(status)) throw new Error("Statut de cabinet invalide.");
+    const existing = await prisma.cabinet.findUnique({ where: { id: cabinetId }, select: { id: true, name: true, status: true } });
+    if (!existing) throw new Error("Cabinet introuvable.");
+    await prisma.cabinet.update({ where: { id: cabinetId }, data: { status, plan: "FREE", subscriptionStatus: "FREE", trialEndsAt: null } });
+    await prisma.platformAdminAction.create({ data: {
+      adminId: admin.id,
+      adminEmail: admin.email,
+      cabinetId,
+      action: "gestion_cabinet",
+      summary: existing.name + " : " + (existing.status === status ? "statut confirmé " : "statut modifié vers ") + status + " · accès gratuit",
+    } });
+    revalidatePath("/admin");
+  });
+}
+
