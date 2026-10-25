@@ -18,7 +18,7 @@ npm install
 npm run dev
 ```
 
-Créez ensuite un cabinet depuis `/inscription`. L'inscription crée gratuitement l'espace et le compte gérant. La plateforme est gratuite pour tous les cabinets d'architecture.
+Créez ensuite un cabinet depuis `/inscription`. L'inscription crée l'espace, le compte gérant et 14 jours d'essai.
 
 Configurez `SUPABASE_DATABASE_URL` avec le pooler de transaction Supabase (6543) pour le runtime et `SUPABASE_DIRECT_URL` pour Prisma. Appliquez les fichiers SQL de `prisma/migrations/` selon leur numérotation avant le premier démarrage. Le build Vercel ne modifie jamais le schéma automatiquement. Les fichiers métier restent stockés dans Vercel Blob.
 
