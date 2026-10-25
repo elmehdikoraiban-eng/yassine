@@ -92,8 +92,8 @@ model Cabinet {
   phone              String?
   contactEmail       String?
   status             String    @default("ACTIVE")
-  plan               String    @default("TRIAL")
-  subscriptionStatus String    @default("TRIAL")
+  plan               String    @default("FREE")
+  subscriptionStatus String    @default("FREE")
   trialEndsAt        DateTime?
   subscriptionStartedAt DateTime?
   subscriptionRenewsAt DateTime?

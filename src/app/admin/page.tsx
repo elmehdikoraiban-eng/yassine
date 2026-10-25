@@ -35,22 +35,19 @@ export default async function PlatformAdminPage() {
   const totals = cabinets.reduce((sum, cabinet) => ({
     users: sum.users + cabinet._count.users,
     projects: sum.projects + cabinet._count.projects,
-    clients: sum.clients + cabinet._count.clients,
     activeCabinets: sum.activeCabinets + Number(cabinet.status === "ACTIVE"),
-    overdue: sum.overdue + Number(cabinet.subscriptionStatus === "PAST_DUE"),
-    trials: sum.trials + Number(cabinet.subscriptionStatus === "TRIAL"),
-  }), { users: 0, projects: 0, clients: 0, activeCabinets: 0, overdue: 0, trials: 0 });
+  }), { users: 0, projects: 0, activeCabinets: 0 });
 
   return (
     <>
       <Topbar crumbs={[{ label: "Administration plateforme" }]} />
       <div className="content">
-        <PageHead title="Administration plateforme" subtitle="Cabinets, comptes, activité et suivi manuel des abonnements." />
+        <PageHead title="Administration plateforme" subtitle="Accès gratuit pour les cabinets d’architecture : suivi des espaces, des comptes et de leur activité." />
         <div className="grid grid-4">
           <div className="stat"><div className="stat-label">Cabinets actifs</div><div className="stat-value">{totals.activeCabinets}</div><div className="stat-sub">{cabinets.length} au total</div></div>
           <div className="stat"><div className="stat-label">Comptes actifs</div><div className="stat-value">{activeUsers}</div><div className="stat-sub">{totals.users} au total</div></div>
           <div className="stat"><div className="stat-label">Projets en cours</div><div className="stat-value">{activeProjects}</div><div className="stat-sub">{totals.projects} au total</div></div>
-          <div className="stat"><div className="stat-label">Nouveaux cabinets · 30 jours</div><div className="stat-value">{recentRegistrations}</div><div className="stat-sub">{totals.trials} essais · {totals.overdue} paiements en retard</div></div>
+          <div className="stat"><div className="stat-label">Nouveaux cabinets · 30 jours</div><div className="stat-value">{recentRegistrations}</div><div className="stat-sub">Tous bénéficient de l’accès gratuit</div></div>
         </div>
 
         <div className="stack" style={{ marginTop: 18 }}>
@@ -66,23 +63,18 @@ export default async function PlatformAdminPage() {
                     <h2>{cabinet.name}</h2>
                     <div className="faint">{cabinet.slug} · créé le {date(cabinet.createdAt)}</div>
                   </div>
-                  <span className="badge">{cabinet.status} · {cabinet.plan} · {cabinet.subscriptionStatus}</span>
+                  <span className="badge">{cabinet.status} · GRATUIT</span>
                 </div>
                 <dl className="grid grid-4">
                   <div><dt className="stat-label">Contact</dt><dd>{cabinet.contactEmail || "—"}</dd></div>
                   <div><dt className="stat-label">Téléphone</dt><dd>{cabinet.phone || "—"}</dd></div>
                   <div><dt className="stat-label">Ville</dt><dd>{cabinet.city || "—"}</dd></div>
                   <div><dt className="stat-label">Inscription</dt><dd>{date(cabinet.createdAt)}</dd></div>
-                  <div><dt className="stat-label">Essai jusqu’au</dt><dd>{date(cabinet.trialEndsAt)}</dd></div>
-                  <div><dt className="stat-label">Renouvellement</dt><dd>{date(cabinet.subscriptionRenewsAt)}</dd></div>
-                  <div><dt className="stat-label">Dernier paiement</dt><dd>{date(cabinet.lastPaymentAt)}</dd></div>
                   <div><dt className="stat-label">Dernière activité</dt><dd>{dateTime(latestActivity)}</dd></div>
                   <div><dt className="stat-label">Stockage utilisé</dt><dd>{fileSize(storage)}</dd></div>
                   <div><dt className="stat-label">Clients enregistrés</dt><dd>{cabinet._count.clients}</dd></div>
                   <div><dt className="stat-label">Projets suivis</dt><dd>{cabinet._count.projects}</dd></div>
-                  <div><dt className="stat-label">Début abonnement</dt><dd>{date(cabinet.subscriptionStartedAt)}</dd></div>
                 </dl>
-
                 <div className="grid grid-2" style={{ marginTop: 18 }}>
                   <div>
                     <h3>Équipe ({cabinet._count.users})</h3>
@@ -98,11 +90,7 @@ export default async function PlatformAdminPage() {
                     <p className="faint">Seuls les volumes et l’activité sont visibles ici ; les dossiers et documents restent privés.</p>
                   </div>
                 </div>
-                <CabinetControls cabinet={{
-                  id: cabinet.id, status: cabinet.status, plan: cabinet.plan, subscriptionStatus: cabinet.subscriptionStatus,
-                  trialEndsAt: cabinet.trialEndsAt, subscriptionStartedAt: cabinet.subscriptionStartedAt,
-                  subscriptionRenewsAt: cabinet.subscriptionRenewsAt, lastPaymentAt: cabinet.lastPaymentAt,
-                }} />
+                <CabinetControls cabinet={{ id: cabinet.id, status: cabinet.status }} />
               </section>
             );
           })}
