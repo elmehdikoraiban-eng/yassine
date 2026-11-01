@@ -25,6 +25,7 @@
 <meta name="twitter:image" content="https://yassine-zerrouki-architecte.vercel.app/og.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap">
+<script>try{if(!matchMedia("(prefers-reduced-motion: reduce)").matches&&!location.hash){document.documentElement.classList.add("intro");setTimeout(function(){document.documentElement.classList.remove("intro")},6000)}}catch(e){}</script>
 <style>
 :root{--grey-grad:linear-gradient(135deg,#EEF1F4 0%,#DCE2E8 55%,#CCD4DC 100%);--grey-soft:linear-gradient(135deg,#F5F7F9 0%,#E3E8ED 100%);--red-grad:linear-gradient(135deg,#FF7A6B 0%,#E8352B 55%,#B3141A 100%);--red-soft:linear-gradient(135deg,#FFD9D3 0%,#FF9A8C 100%);--ink:#1E1F21;--ink2:#45474B;--muted:#6D6E73;--line:#E8E6E3;--cream:#FFFFFF;--coral:#F06A6A;--shadow-lg:0 2px 4px rgba(30,31,33,.05),0 36px 70px -26px rgba(30,31,33,.32);--font:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--ease:cubic-bezier(.2,.7,.2,1);color-scheme:light}
 *,*:before,*:after{box-sizing:border-box}
@@ -129,11 +130,17 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
 .strip .ph img{transition:transform .8s var(--ease)}
 @media(hover:hover){.strip .ph:hover img{transform:scale(1.04)}}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-.hero h1{animation:rise .7s var(--ease) both}
-.hero .sub{animation:rise .7s var(--ease) .08s both}
-.strip{animation:rise .8s var(--ease) .16s both}
-.zone .q,.zone .card{animation:rise .8s var(--ease) .24s both}
-@media (prefers-reduced-motion:reduce){.hero h1,.hero .sub,.strip,.zone .q,.zone .card{animation:none}.strip .ph img{transition:none}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+html.intro body{overflow:hidden}
+html.intro .hero{overflow:visible}
+.hero h1.lift,.hero h1.show{position:relative;z-index:5}
+html.intro .hero h1{opacity:0}
+html.intro .hero h1.show{opacity:1;animation:fadein .8s var(--ease) both}
+html.intro .hero h1.lift{transition:transform 1s cubic-bezier(.7,0,.2,1)}
+html.intro .hero .sub,html.intro .strip,html.intro .zone .q,html.intro .zone .card,html.intro .foot,html.intro .sky{opacity:0}
+.reveal{animation:rise .8s var(--ease) both}
+.sky.reveal{animation:fadein 1.2s var(--ease) both}
+@media (prefers-reduced-motion:reduce){.reveal,.sky.reveal{animation:none}.strip .ph img{transition:none}}
 </style>
 </head>
 <body>
@@ -254,6 +261,22 @@ form.addEventListener("submit",e=>{
   document.getElementById("done-title").textContent="Merci "+v("nom").split(" ")[0]+" !";
   document.getElementById("form-view").hidden=true;document.getElementById("done").hidden=false;document.getElementById("done-title").focus();
 });
+
+(function(){
+  const root=document.documentElement;if(!root.classList.contains("intro"))return;
+  const h1=document.querySelector(".hero h1");
+  const place=()=>{const r=h1.getBoundingClientRect();const dy=innerHeight/2-(r.top+r.height/2);h1.style.transform="translateY("+dy+"px) scale(1.08)"};
+  place();h1.classList.add("show");
+  setTimeout(()=>{
+    h1.classList.add("lift");h1.style.transform="";
+    setTimeout(()=>{
+      const seq=[...document.querySelectorAll(".sky")].concat([document.querySelector(".hero .sub"),document.querySelector(".strip"),document.querySelector(".zone .q"),document.querySelector(".zone .card"),document.querySelector(".foot")]);
+      let i=0;seq.forEach(el=>{if(!el)return;el.style.animationDelay=(el.classList.contains("sky")?0:(i++)*0.22)+"s";el.classList.add("reveal")});
+      root.classList.remove("intro");
+      setTimeout(()=>{h1.classList.remove("show","lift")},1200);
+    },850);
+  },2000);
+})();
 </script>
 
 </body>
