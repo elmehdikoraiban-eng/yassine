@@ -226,7 +226,7 @@ html.intro .hero h1.line .pen .p2{transition-delay:.55s;transition-duration:.45s
 <script>
 const WHATSAPP = "";
 /* URL de l'Apps Script Google Sheet (Extensions > Apps Script > Déployer > Application Web). Vide = pas d'envoi. */
-const SHEET_ENDPOINT = "";
+const SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycbzdq_qo4fXuVpCl-jiPq1uZPvxRN5x_v72TPgFIAioGTjYhN0FtkaMjkL2-xPhXsoXMUw/exec";
 /* Source de la visite (pub, lien) gardée 30 jours */
 (function(){try{const q=new URLSearchParams(location.search);const k=["utm_source","utm_medium","utm_campaign","utm_content","fbclid","gclid"].filter(x=>q.get(x)).map(x=>x+"="+q.get(x)).join("&");if(k)localStorage.setItem("yz_src",JSON.stringify({v:k,t:Date.now()}));}catch(e){}})();
 function sourceVisite(){try{const o=JSON.parse(localStorage.getItem("yz_src")||"null");if(o&&Date.now()-o.t<30*864e5)return o.v}catch(e){}return document.referrer||"direct"}
