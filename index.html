@@ -43,11 +43,10 @@ h1{max-width:15ch;margin:0 auto;font-size:clamp(40px,6.2vw,72px);line-height:1.0
 h1 em{font-style:normal;color:#e8352b;background:var(--red-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .sub{max-width:34em;margin:22px auto 0;font-size:clamp(17px,1.5vw,19px);color:var(--ink2)}
 /* Bande d'images horizontale */
-.strip{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding-block:0 28px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));scrollbar-width:none;cursor:grab}
+.strip{display:flex;gap:14px;overflow-x:auto;padding-block:0 28px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));scrollbar-width:none;cursor:grab}
 .strip::-webkit-scrollbar{display:none}
-.strip.dragging{cursor:grabbing;scroll-snap-type:none}
-.strip .ph{flex:0 0 auto;width:min(68vw,300px);aspect-ratio:4/5;max-width:100%;border-radius:22px;overflow:hidden;position:relative;scroll-snap-align:center;background:var(--line);user-select:none}
-.strip .ph:first-child{margin-left:auto}.strip .ph:last-child{margin-right:auto}
+.strip.dragging{cursor:grabbing}
+.strip .ph{flex:0 0 auto;width:min(68vw,300px);aspect-ratio:4/5;max-width:100%;border-radius:22px;overflow:hidden;position:relative;transform:translateZ(0);background:var(--line);user-select:none}
 .strip img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .trust{list-style:none;padding:0;margin:20px auto 0;display:flex;flex-wrap:nowrap;justify-content:center;gap:10px}
 .trust li{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:14px;font-weight:500;color:var(--ink)}
@@ -125,6 +124,16 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
 #submit:hover svg{transform:translateX(3px)}
 .br-m{display:none}
 @media(max-width:640px){.br-d{display:none}.br-m{display:inline}}
+
+.strip{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 24px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 24px),transparent 100%);touch-action:pan-y pinch-zoom}
+.strip .ph img{transition:transform .8s var(--ease)}
+@media(hover:hover){.strip .ph:hover img{transform:scale(1.04)}}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.hero h1{animation:rise .7s var(--ease) both}
+.hero .sub{animation:rise .7s var(--ease) .08s both}
+.strip{animation:rise .8s var(--ease) .16s both}
+.zone .q,.zone .card{animation:rise .8s var(--ease) .24s both}
+@media (prefers-reduced-motion:reduce){.hero h1,.hero .sub,.strip,.zone .q,.zone .card{animation:none}.strip .ph img{transition:none}}
 </style>
 </head>
 <body>
@@ -186,10 +195,37 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
 </footer>
 <script>
 const WHATSAPP = ""; /* numéro de Yassine, ex. 212612345678 */
-const strip=document.getElementById("strip");let down=false,sx=0,sl=0;
-strip.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse")return;down=true;sx=e.clientX;sl=strip.scrollLeft;strip.classList.add("dragging")});
-addEventListener("pointermove",e=>{if(down)strip.scrollLeft=sl-(e.clientX-sx)});
-addEventListener("pointerup",()=>{if(down){down=false;strip.classList.remove("dragging")}});
+const strip=document.getElementById("strip");
+(function(){
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const items=[...strip.children];
+  items.forEach(el=>{const c=el.cloneNode(true);c.setAttribute("aria-hidden","true");c.querySelectorAll("img").forEach(i=>{i.alt="";i.loading="lazy"});strip.appendChild(c)});
+  let half=0;const measure=()=>{half=strip.scrollWidth/2};measure();addEventListener("resize",measure);addEventListener("load",measure);
+  const SPEED=reduce?0:28; /* px par seconde */
+  let paused=false,resumeT=0,vel=0,down=false,sx=0,sl=0,lastX=0,lastT=0,prev=performance.now(),pos=strip.scrollLeft;
+  const wrap=()=>{if(half){if(pos>=half)pos-=half;else if(pos<0)pos+=half}};
+  const pause=()=>{paused=true;clearTimeout(resumeT)};
+  const resume=(d=1800)=>{clearTimeout(resumeT);resumeT=setTimeout(()=>{paused=false},d)};
+  function tick(now){
+    const dt=Math.min(64,now-prev)/1000;prev=now;
+    if(!down){
+      if(Math.abs(vel)>5){pos+=vel*dt;vel*=Math.pow(.04,dt)}
+      else if(!paused){vel=0;pos+=SPEED*dt}
+      else pos=strip.scrollLeft;
+      wrap();if(Math.abs(strip.scrollLeft-pos)>.5)strip.scrollLeft=pos;
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  strip.addEventListener("pointerenter",e=>{if(e.pointerType==="mouse")pause()});
+  strip.addEventListener("pointerleave",e=>{if(e.pointerType==="mouse"&&!down)resume(400)});
+  strip.addEventListener("touchstart",()=>{pause();vel=0},{passive:true});
+  strip.addEventListener("touchend",()=>resume(),{passive:true});
+  strip.addEventListener("scroll",()=>{if(paused&&!down){pos=strip.scrollLeft;if(half&&(pos>=half||pos<=0)){wrap();strip.scrollLeft=pos}}},{passive:true});
+  strip.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse")return;down=true;pause();vel=0;sx=lastX=e.clientX;sl=pos=strip.scrollLeft;lastT=performance.now();strip.classList.add("dragging")});
+  addEventListener("pointermove",e=>{if(!down)return;const t=performance.now();pos=sl-(e.clientX-sx);wrap();strip.scrollLeft=pos;if(t>lastT){vel=-(e.clientX-lastX)/((t-lastT)/1000);lastX=e.clientX;lastT=t}});
+  addEventListener("pointerup",()=>{if(!down)return;down=false;strip.classList.remove("dragging");if(performance.now()-lastT>80)vel=0;vel=Math.max(-2500,Math.min(2500,vel));if(!strip.matches(":hover"))resume(600)});
+})();
 const form=document.getElementById("lead-form");
 function err(id,msg){const el=document.getElementById(id),p=document.getElementById(id+"-err"),f=el.closest(".field");el.setAttribute("aria-invalid",msg?"true":"false");if(f){f.classList.toggle("ok",!msg);if(f.matches("fieldset")){msg?f.setAttribute("data-invalid",""):f.removeAttribute("data-invalid")}}if(p){p.textContent=msg||"";p.hidden=!msg}return !msg}
 const v=n=>(form[n].value||"").trim();
