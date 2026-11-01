@@ -7,7 +7,7 @@ const crypto = require("crypto");
 const PIXEL_ID = "1121433940618331";
 const GRAPH = "https://graph.facebook.com/v23.0/" + PIXEL_ID + "/events";
 const ALLOWED = new Set(["PageView", "Lead", "Contact"]);
-const HOSTS = /(^|\.)yassine-zerrouki-architecte(-[a-z0-9-]+)?\.vercel\.app$|^localhost$/;
+const HOSTS = /^yassine-zerrouki-architecte\.vercel\.app$/;
 
 const sha = (v) => (v ? crypto.createHash("sha256").update(String(v).trim().toLowerCase()).digest("hex") : undefined);
 const norm = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z]/g, "");
