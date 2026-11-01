@@ -224,7 +224,13 @@ html.intro .hero h1.line .pen .p2{transition-delay:.55s;transition-duration:.45s
   <p class="copy">© 2026 Yassine Zerrouki · <a href="#formulaire">Formulaire</a></p>
 </footer>
 <script>
-const WHATSAPP = ""; /* numéro de Yassine, ex. 212612345678 */
+const WHATSAPP = "";
+/* URL de l'Apps Script Google Sheet (Extensions > Apps Script > Déployer > Application Web). Vide = pas d'envoi. */
+const SHEET_ENDPOINT = "";
+/* Source de la visite (pub, lien) gardée 30 jours */
+(function(){try{const q=new URLSearchParams(location.search);const k=["utm_source","utm_medium","utm_campaign","utm_content","fbclid","gclid"].filter(x=>q.get(x)).map(x=>x+"="+q.get(x)).join("&");if(k)localStorage.setItem("yz_src",JSON.stringify({v:k,t:Date.now()}));}catch(e){}})();
+function sourceVisite(){try{const o=JSON.parse(localStorage.getItem("yz_src")||"null");if(o&&Date.now()-o.t<30*864e5)return o.v}catch(e){}return document.referrer||"direct"}
+function sendToSheet(){if(!SHEET_ENDPOINT)return;const fd=new URLSearchParams();["nom","tel","email","ville","projet","surface","besoin","societe"].forEach(n=>fd.append(n,(form[n]&&form[n].value||"").trim()));fd.append("source",sourceVisite());fd.append("page",location.href);try{fetch(SHEET_ENDPOINT,{method:"POST",mode:"no-cors",body:fd,keepalive:true}).catch(()=>{})}catch(e){}} /* numéro de Yassine, ex. 212612345678 */
 const strip=document.getElementById("strip");
 (function(){
   const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -280,6 +286,7 @@ form.addEventListener("submit",e=>{
   const bad=Object.keys(rules).filter(id=>!check(id));
   if(bad.length){const id=bad[0];document.getElementById(id).focus();return}
   const text=["Bonjour Yassine, je souhaite un avis sur mon projet.","Nom : "+v("nom"),"Projet : "+v("projet"),"Ville : "+v("ville"),"Terrain : "+v("surface")+" m²","E-mail : "+v("email"),v("besoin")&&"\nBesoin : "+v("besoin")].filter(Boolean).join("\n");
+  sendToSheet();
   document.getElementById("wa-link").href="https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent(text);
   document.getElementById("done-title").textContent="Merci "+v("nom").split(" ")[0]+" !";
   document.getElementById("form-view").hidden=true;document.getElementById("done").hidden=false;document.getElementById("done-title").focus();
