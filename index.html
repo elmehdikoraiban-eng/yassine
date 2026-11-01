@@ -147,9 +147,14 @@ html.intro .hero .sub,html.intro .strip,html.intro .zone .q,html.intro .zone .ca
 .hero h1 em .wi{padding-bottom:.18em;margin-bottom:-.18em;background:linear-gradient(110deg,#B3141A 0%,#E8352B 30%,#FF9A8C 50%,#E8352B 70%,#B3141A 100%);background-size:250% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:wordin 1s cubic-bezier(.2,.8,.2,1) forwards,shine 1.4s cubic-bezier(.6,0,.2,1) 1.25s forwards;animation-delay:var(--d),1.25s}
 @keyframes shine{from{background-position:100% 0}to{background-position:0 0}}
 .hero h1 em{position:relative}
-.hero h1 em::after{content:"";position:absolute;left:2%;right:6%;bottom:-.2em;height:.06em;border-radius:99px;background:var(--red-grad);transform:scaleX(0);transform-origin:left;transition:transform .9s cubic-bezier(.7,0,.2,1)}
-.hero h1.line em::after{transform:scaleX(1)}
-.hero h1.line.lift em::after{transform:scaleX(0);transform-origin:right;transition-duration:.7s}
+
+.hero h1 .pen{position:absolute;left:-2%;width:100%;height:.26em;bottom:-.16em;overflow:visible;pointer-events:none;z-index:-1}
+.hero h1 em{isolation:isolate}
+.hero h1 .pen path{fill:none;stroke:url(#penG);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:0;vector-effect:non-scaling-stroke}
+.hero h1 .pen .p2{stroke-width:3;opacity:.55}
+html.intro .hero h1 .pen path{stroke-dashoffset:1}
+html.intro .hero h1.line .pen path{stroke-dashoffset:0;transition:stroke-dashoffset .75s cubic-bezier(.55,0,.25,1)}
+html.intro .hero h1.line .pen .p2{transition-delay:.55s;transition-duration:.45s}
 @keyframes popin{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 .sky.reveal i{animation:popin 1.2s cubic-bezier(.2,.8,.2,1) both}
 .sky.reveal i:nth-child(2){animation-delay:.12s}.sky.reveal i:nth-child(3){animation-delay:.24s}.sky.reveal i:nth-child(4){animation-delay:.36s}.sky.reveal i:nth-child(5){animation-delay:.48s}.sky.reveal i:nth-child(6){animation-delay:.6s}
@@ -163,7 +168,7 @@ html.intro .hero .sub,html.intro .strip,html.intro .zone .q,html.intro .zone .ca
 <body>
 <main>
   <div class="hero"><div class="sky" aria-hidden="true"><i></i><i></i><i></i></div>
-    <h1>Le projet que vous <em>imaginez.</em></h1>
+    <h1>Le projet que vous <em>imaginez.<svg class="pen" viewBox="0 0 300 28" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="penG" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#FF7A6B"/><stop offset=".55" stop-color="#E8352B"/><stop offset="1" stop-color="#B3141A"/></linearGradient></defs><path pathLength="1" d="M6 19 C 48 12, 96 9, 150 11 S 248 16, 294 8"/><path class="p2" pathLength="1" d="M40 23 C 100 17, 170 15, 230 17"/></svg></em></h1>
     <p class="sub">Plus de 100 projets réalisés au Maroc par Yassine Zerrouki,<br class="br-d"> architecte inscrit à l'Ordre.</p>
   </div>
   <div class="strip" id="strip" aria-label="Projets de Yassine Zerrouki">
@@ -283,7 +288,7 @@ form.addEventListener("submit",e=>{
   const root=document.documentElement;if(!root.classList.contains("intro"))return;
   const h1=document.querySelector(".hero h1");
   /* découpe le titre en mots */
-  let n=0;const split=node=>{[...node.childNodes].forEach(c=>{if(c.nodeType===3){const f=document.createDocumentFragment();c.textContent.split(/(\s+)/).forEach(t=>{if(!t)return;if(/^\s+$/.test(t)){f.appendChild(document.createTextNode(" "));return}const w=document.createElement("span");w.className="w";const i=document.createElement("span");i.className="wi";i.style.setProperty("--d",(0.15+n++*0.13)+"s");i.textContent=t;w.appendChild(i);f.appendChild(w)});c.replaceWith(f)}else if(c.nodeType===1&&c.tagName!=="BR")split(c)})};
+  let n=0;const split=node=>{[...node.childNodes].forEach(c=>{if(c.nodeType===3){const f=document.createDocumentFragment();c.textContent.split(/(\s+)/).forEach(t=>{if(!t)return;if(/^\s+$/.test(t)){f.appendChild(document.createTextNode(" "));return}const w=document.createElement("span");w.className="w";const i=document.createElement("span");i.className="wi";i.style.setProperty("--d",(0.15+n++*0.13)+"s");i.textContent=t;w.appendChild(i);f.appendChild(w)});c.replaceWith(f)}else if(c.nodeType===1&&c.tagName!=="BR"&&c.tagName.toLowerCase()!=="svg")split(c)})};
   const original=h1.innerHTML;split(h1);
   const place=()=>{h1.style.transform="";const r=h1.getBoundingClientRect();const dy=innerHeight/2-(r.top+r.height/2);h1.style.transform="translateY("+dy+"px) scale(1.12)"};
   place();h1.classList.add("show");
