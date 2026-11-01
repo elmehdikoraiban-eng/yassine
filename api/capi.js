@@ -80,6 +80,7 @@ module.exports = async (req, res) => {
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) console.error("CAPI error", r.status, JSON.stringify(j.error || j));
+    else console.log("CAPI ok", event.event_name, "received=" + (j.events_received || 0));
     return res.status(200).json({ ok: r.ok, received: j.events_received || 0 });
   } catch (e) {
     console.error("CAPI fetch failed", e.message);
