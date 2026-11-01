@@ -131,12 +131,13 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
 @media(hover:hover){.strip .ph:hover img{transform:scale(1.04)}}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
+@media (hover:hover) and (pointer:fine){html{scrollbar-gutter:stable}}
 html.intro body{overflow:hidden}
-html.intro .hero{overflow:visible}
+.hero.ov{overflow:visible}
 .hero h1.lift,.hero h1.show{position:relative;z-index:5}
 html.intro .hero h1{opacity:0}
 html.intro .hero h1.show{opacity:1}
-html.intro .hero h1.lift{transition:transform 1.1s cubic-bezier(.76,0,.24,1)}
+.hero h1.lift{transition:transform 1.1s cubic-bezier(.76,0,.24,1)}
 html.intro .hero .sub,html.intro .strip,html.intro .zone .q,html.intro .zone .card,html.intro .foot,html.intro .sky{opacity:0}
 .sky.reveal{opacity:1}
 
@@ -144,7 +145,7 @@ html.intro .hero .sub,html.intro .strip,html.intro .zone .q,html.intro .zone .ca
 .hero h1 .w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.22em;margin-bottom:-.22em}
 .hero h1 .wi{display:inline-block;transform:translateY(110%) rotate(4deg);filter:blur(6px);opacity:0;animation:wordin 1s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d)}
 @keyframes wordin{to{transform:none;filter:none;opacity:1}}
-.hero h1 em .wi{padding-bottom:.18em;margin-bottom:-.18em;background:linear-gradient(110deg,#B3141A 0%,#E8352B 30%,#FF9A8C 50%,#E8352B 70%,#B3141A 100%);background-size:250% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:wordin 1s cubic-bezier(.2,.8,.2,1) forwards,shine 1.4s cubic-bezier(.6,0,.2,1) 1.25s forwards;animation-delay:var(--d),1.25s}
+.hero h1 em .wi{padding-bottom:.18em;margin-bottom:-.18em;background:linear-gradient(110deg,#FF7A6B 0%,#E8352B 22%,#B3141A 40%,#FF9A8C 55%,#E8352B 75%,#B3141A 100%);background-size:250% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:wordin 1s cubic-bezier(.2,.8,.2,1) forwards,shine 1.4s cubic-bezier(.6,0,.2,1) 1.25s forwards;animation-delay:var(--d),1.25s}
 @keyframes shine{from{background-position:100% 0}to{background-position:0 0}}
 .hero h1 em{position:relative}
 
@@ -291,7 +292,7 @@ form.addEventListener("submit",e=>{
   let n=0;const split=node=>{[...node.childNodes].forEach(c=>{if(c.nodeType===3){const f=document.createDocumentFragment();c.textContent.split(/(\s+)/).forEach(t=>{if(!t)return;if(/^\s+$/.test(t)){f.appendChild(document.createTextNode(" "));return}const w=document.createElement("span");w.className="w";const i=document.createElement("span");i.className="wi";i.style.setProperty("--d",(0.15+n++*0.13)+"s");i.textContent=t;w.appendChild(i);f.appendChild(w)});c.replaceWith(f)}else if(c.nodeType===1&&c.tagName!=="BR"&&c.tagName.toLowerCase()!=="svg")split(c)})};
   const original=h1.innerHTML;split(h1);
   const place=()=>{h1.style.transform="";const r=h1.getBoundingClientRect();const dy=innerHeight/2-(r.top+r.height/2);h1.style.transform="translateY("+dy+"px) scale(1.12)"};
-  place();h1.classList.add("show");
+  h1.parentElement.classList.add("ov");place();h1.classList.add("show");
   setTimeout(()=>h1.classList.add("line"),1150);
   setTimeout(()=>{
     h1.classList.add("lift");h1.style.transform="";
@@ -300,7 +301,7 @@ form.addEventListener("submit",e=>{
       let i=0;seq.forEach(el=>{if(!el)return;el.style.animationDelay=(i++)*0.2+"s";el.classList.add("reveal")});
       document.querySelectorAll(".sky").forEach(el=>el.classList.add("reveal"));
       root.classList.remove("intro");
-      setTimeout(()=>{h1.classList.remove("show","lift","line");h1.innerHTML=original},2600);
+      setTimeout(()=>{h1.classList.remove("show","lift");h1.parentElement.classList.remove("ov")},1200);
     },700);
   },2900);
 })();
