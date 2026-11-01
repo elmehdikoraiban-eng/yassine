@@ -117,7 +117,8 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
 #submit:hover{filter:brightness(1.05);transform:translateY(-1px)}
 #submit svg{transition:transform .25s var(--ease)}
 #submit:hover svg{transform:translateX(3px)}
-@media(max-width:640px){.br-d{display:none}}
+.br-m{display:none}
+@media(max-width:640px){.br-d{display:none}.br-m{display:inline}}
 </style>
 </head>
 <body>
@@ -139,7 +140,7 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
   </div>
   <div class="zone">
     <div class="sky" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    <h2 class="q" id="titre-form">Parlez-nous de votre projet</h2>
+    <h2 class="q" id="titre-form">Parlez-nous<br class="br-m"> de votre projet</h2>
     <section class="card" id="formulaire" aria-labelledby="titre-form">
       <div id="form-view">
         <form id="lead-form" novalidate>
