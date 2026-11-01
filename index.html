@@ -225,12 +225,24 @@ html.intro .hero h1.line .pen .p2{transition-delay:.55s;transition-duration:.45s
 </footer>
 <script>
 const WHATSAPP = "212660013801";
+/* Meta Pixel : ID du pixel « Yassine Zerrouki » (compte D). Vide = pixel désactivé. */
+const PIXEL_ID = "";
+if(PIXEL_ID){!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");fbq("init",PIXEL_ID);fbq("track","PageView")}
+const px=(...a)=>{try{if(PIXEL_ID&&window.fbq)fbq(...a)}catch(e){}};
+const newId=()=>{try{return crypto.randomUUID()}catch(e){return Date.now().toString(36)+Math.random().toString(36).slice(2)}};
+let LEAD_ID="";
+function pixelLead(){
+  LEAD_ID=newId();
+  const parts=v("nom").toLowerCase().split(/\s+/);let ph=v("tel").replace(/\D/g,"");if(ph.startsWith("00"))ph=ph.slice(2);else if(ph.startsWith("0"))ph="212"+ph.slice(1);
+  px("init",PIXEL_ID,{em:v("email").toLowerCase(),ph:ph,fn:parts[0]||"",ln:parts.slice(1).join(" "),ct:v("ville").toLowerCase().replace(/[^a-z]/g,""),country:"ma",external_id:LEAD_ID});
+  px("track","Lead",{content_name:v("projet"),content_category:v("ville"),surface_m2:Number(v("surface"))||0},{eventID:LEAD_ID});
+}
 /* URL de l'Apps Script Google Sheet (Extensions > Apps Script > Déployer > Application Web). Vide = pas d'envoi. */
 const SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycbzdq_qo4fXuVpCl-jiPq1uZPvxRN5x_v72TPgFIAioGTjYhN0FtkaMjkL2-xPhXsoXMUw/exec";
 /* Source de la visite (pub, lien) gardée 30 jours */
 (function(){try{const q=new URLSearchParams(location.search);const k=["utm_source","utm_medium","utm_campaign","utm_content","fbclid","gclid"].filter(x=>q.get(x)).map(x=>x+"="+q.get(x)).join("&");if(k)localStorage.setItem("yz_src",JSON.stringify({v:k,t:Date.now()}));}catch(e){}})();
 function sourceVisite(){try{const o=JSON.parse(localStorage.getItem("yz_src")||"null");if(o&&Date.now()-o.t<30*864e5)return o.v}catch(e){}return document.referrer||"direct"}
-function sendToSheet(){if(!SHEET_ENDPOINT)return;const fd=new URLSearchParams();["nom","tel","email","ville","projet","surface","besoin","societe"].forEach(n=>fd.append(n,(form[n]&&form[n].value||"").trim()));fd.append("source",sourceVisite());fd.append("page",location.href);try{fetch(SHEET_ENDPOINT,{method:"POST",mode:"no-cors",body:fd,keepalive:true}).catch(()=>{})}catch(e){}} /* numéro de Yassine, ex. 212612345678 */
+function sendToSheet(){if(!SHEET_ENDPOINT)return;const fd=new URLSearchParams();["nom","tel","email","ville","projet","surface","besoin","societe"].forEach(n=>fd.append(n,(form[n]&&form[n].value||"").trim()));fd.append("source",sourceVisite());fd.append("page",location.href);fd.append("event_id",LEAD_ID);try{fetch(SHEET_ENDPOINT,{method:"POST",mode:"no-cors",body:fd,keepalive:true}).catch(()=>{})}catch(e){}} /* numéro de Yassine, ex. 212612345678 */
 const strip=document.getElementById("strip");
 (function(){
   const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -280,12 +292,14 @@ Object.keys(rules).forEach(id=>{const el=document.getElementById(id);if(el.type=
   el.addEventListener(el.tagName==="SELECT"?"change":"input",()=>{if(el.getAttribute("aria-invalid")==="true"||el.closest(".field").classList.contains("ok"))check(id)});
   if(el.tagName==="SELECT")el.addEventListener("change",()=>check(id));
 });
+document.getElementById("wa-link").addEventListener("click",()=>px("track","Contact",{content_name:v("projet")},{eventID:LEAD_ID+"-wa"}));
 form.surface.addEventListener("input",e=>{const c=e.target.value.replace(/[^0-9]/g,"");if(c!==e.target.value)e.target.value=c});
 form.addEventListener("submit",e=>{
   e.preventDefault();if(form.societe.value)return;
   const bad=Object.keys(rules).filter(id=>!check(id));
   if(bad.length){const id=bad[0];document.getElementById(id).focus();return}
   const text=["Bonjour Yassine, je souhaite un avis sur mon projet.","Nom : "+v("nom"),"Projet : "+v("projet"),"Ville : "+v("ville"),"Terrain : "+v("surface")+" m²","E-mail : "+v("email"),v("besoin")&&"\nBesoin : "+v("besoin")].filter(Boolean).join("\n");
+  pixelLead();
   sendToSheet();
   document.getElementById("wa-link").href="https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent(text);
   document.getElementById("done-title").textContent="Merci "+v("nom").split(" ")[0]+" !";
